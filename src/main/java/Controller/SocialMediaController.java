@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import Model.Account;
 import Model.Message;
 import Service.AccountService;
+import Service.MessageService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -17,11 +18,11 @@ import io.javalin.http.Context;
 public class SocialMediaController {
 
     AccountService accountService;
-    Message message;
+    MessageService messageService;
 
     public SocialMediaController(){
         accountService = new AccountService();
-        message = new Message();
+        messageService = new MessageService();
     }
 
 
@@ -63,6 +64,12 @@ public class SocialMediaController {
         return account.password != null;
     }
 
+    private boolean hasMessageText(Message message){
+        return message.getMessage_text() != null && 
+        !message.getMessage_text().trim().isEmpty() && 
+        message.getMessage_text().length() < 255;
+    }
+
     private void postAccount(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
@@ -96,8 +103,22 @@ public class SocialMediaController {
         ctx.status(401);
     }
 
-    private void postInsertMessage(Context ctx){
+    private void postInsertMessage(Context ctx)throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(ctx.body(), Message.class);
 
+        if(hasMessageText(message)){
+
+            if(accountService.getAccountById(message.getPosted_by()) != null){
+                Message addedMessage = messageService.addMessage(message);
+                if(addedMessage != null){
+                    ctx.json(mapper.writeValueAsString(addedMessage));
+                    ctx.status(200);
+                    return;
+                }
+            }
+        }
+        ctx.status(400);
     }
 
     private void getAllMessages(Context ctx){
