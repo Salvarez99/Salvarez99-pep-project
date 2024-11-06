@@ -33,15 +33,39 @@ public class SocialMediaController {
     public Javalin startAPI() {
         Javalin app = Javalin.create();
         app.post("/register", this::postAccount);
-
+        app.post("/login", this::postLogIn);
+        app.post("/messages", this::postInsertMessage);
+        app.get("/messages", this::getAllMessages);
+        app.get("/messages", this::getMessageById);
+        app.delete("/messages", this::deleteMessageById);
+        app.patch("/messages", this::patchMessageById);
+        
         return app;
+    }
+
+    /*
+     * Checks if account username is in valid format
+     * @param account
+     * @return true if valid format, false otherwise
+     */
+    private boolean hasUsername(Account account){
+        return account.username != null && !account.username.trim().isEmpty();
+    }
+
+    /*
+     * Checks if account password is in valid format
+     * @param account
+     * @return true if valid format, false otherwise
+     */
+    private boolean hasPassword(Account account){
+        return account.password != null;
     }
 
     private void postAccount(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
         
-        if(account.username != null && !account.username.trim().isEmpty() && account.password != null){
+        if(hasUsername(account) && hasPassword(account)){
 
             if(accountService.getAccountByUsername(account.username) == null && account.password.length() >= 4){
                 Account addedAccount = accountService.addAccount(account);
@@ -53,5 +77,40 @@ public class SocialMediaController {
             }
         }
         ctx.status(400);
+    }
+
+    private void postLogIn(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(ctx.body(), Account.class);
+
+        if(hasUsername(account) && hasPassword(account)){
+            Account actual = accountService.getAccountByUsername(account.username);
+            if(actual != null && actual.getUsername().equals(account.getUsername()) && actual.getPassword().equals(account.getPassword())){
+                ctx.json(mapper.writeValueAsString(actual));
+                ctx.status(200);
+                return;
+            }
+        }
+        ctx.status(401);
+    }
+
+    private void postInsertMessage(Context ctx){
+
+    }
+
+    private void getAllMessages(Context ctx){
+
+    }
+
+    private void getMessageById(Context ctx){
+
+    }
+
+    private void deleteMessageById(Context ctx){
+
+    }
+
+    private void patchMessageById(Context ctx){
+
     }
 }

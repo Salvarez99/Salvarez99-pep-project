@@ -7,8 +7,8 @@ public class AccountDAO {
 
 
     /*
-     * @param account: id is not needed
-     * @return: account if insertion was successful, return null if not successful.
+     * @ param account: id is not needed
+     * @ return: account if insertion was successful, return null if not successful.
      */
     public Account insertAccount(Account account){
         /*
